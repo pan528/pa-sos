@@ -139,6 +139,35 @@ end
         medium_sos_echo(boundary+1:end, :) = sos_lower; % 下部区域
     end
    ```
+### 传感器
+这段代码定义了一个线性阵列传感器（sensor），并设置了其掩码（mask）和方向性（directivity）。具体解释如下：
+
+1. **定义参数**：
+    - `kerf = 1`：定义阵元之间的间隙（kerf）。
+    - `groupspacing = 11`：定义组间距。
+    - `element_num = 128`：定义阵列中的元素数量。
+
+2. **定义源形状**：
+    - `source_shape = reshape((1:groupspacing)' + (0:element_num-1)*(kerf+groupspacing), 1, []);`：
+        - 生成一个包含源形状的数组，表示每个源元素的位置。
+
+3. **定义源掩码**：
+    - `x_offset = 1`：定义源掩码的x方向偏移量。
+    - `source_m.u_mask = zeros(Nx, Nz);`：创建一个大小为 `Nx` x `Nz` 的零矩阵，表示源掩码。
+    - `source_m.u_mask(x_offset, source_shape) = 1;`：在源掩码矩阵中，将源形状的位置设置为1，表示这些位置是源元素。
+
+4. **定义传感器掩码**：
+    - `sensor_m.mask = source_m.u_mask;`：将传感器掩码设置为源掩码。
+    - `sensor_m.directivity_angle = sensor_m.mask;`：将传感器的方向性角度设置为传感器掩码。
+    - `sensor_m.directivity_angle(sensor_m.mask==1) = pi/2;`：将传感器掩码中值为1的位置的方向性角度设置为 `pi/2`，表示这些位置的传感器方向垂直于阵列平面。
+    - `sensor_m.directivity_size = kgrid.dx;`：将传感器的方向性大小设置为 `kgrid.dx`。
+
+5. **将源掩码和传感器掩码赋值给 `source` 和 `sensor` 结构体**：
+    - `source.u_mask = source_m.u_mask;`：将源掩码赋值给 `source` 结构体的 `u_mask` 属性。
+    - `sensor = sensor_m;`：将传感器掩码赋值给 `sensor` 结构体。
+
+总结：
+这段代码定义了一个线性阵列传感器，包含128个元素，每个元素之间有一定的间隙（kerf）。传感器掩码表示传感器的位置和方向性，方向性角度设置为垂直于阵列平面。传感器掩码的大小与计算网格（kgrid）的大小相同。
 ### 重建函数
 目前属于一个没跑通的状态，额，kgrid和mask匹配还有问题
 错误信息表明在 `kspaceFirstOrder2D` 函数中，尝试将 `sensor.time_reversal_boundary_data` 的数据赋值给 `p(sensor_mask_index)` 时，左侧和右侧的元素数目不同。这通常是由于 `sensor.time_reversal_boundary_data` 的大小与 `sensor.mask` 的大小不匹配。
