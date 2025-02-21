@@ -77,14 +77,15 @@ end
 ## 2-21
 - [ ] 周报
 - [ ] 模型：
-    - [ ] 不同背景声速；
-    - [ ] 散射体软组织声速      
+    - [x] 不同背景声速；
+    - [x] 散射体软组织声速      
               <img width="680" alt="pa参数1" src="https://github.com/user-attachments/assets/fb859154-586c-40f1-912a-acbfb3549e09" />    
                <img width="632" alt="pa参数2" src="https://github.com/user-attachments/assets/72af28d8-01ac-40cb-8272-ede8d734c172" />
 
 1. 昨晚设置的生成2000张，内存会挤爆写不下，最多到969张，以后还是分批进行比较好
 2. 将保存和抽样检查的函数单独模块化；
-3. - [ ] 1024*128，这对吗？需要改成256吗？看一下是线阵还是环阵
+3. - [x] 1024*128，这对吗？需要改成256吗？看一下是线阵还是环阵
+         **是线阵**
 4. 分界面位置随机生成，分界面两边的声速随机在`c_backgroundd * [0.9, 1.1]`之间；
    ```python
    % speed of sound distributions
