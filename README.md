@@ -35,28 +35,28 @@
     % 设置整体图像标题
     sgtitle('Randomly Selected Speed of Sound Maps');
     ```
-    进阶版：生成10张包含随机抽取的8个sos_map_d2声速图的图像，并将它们保存到文件中。每张图像将包含8个子图。
+    进阶版：生成5张包含随机抽取的4个sos_map_d2声速图的图像，并将它们保存到文件中。每张图像将包含4个子图。
 ```python
-   % 生成10张图像
-num_images = 10;
-num_samples = 8;
+%% check
+   % 生成5张图像
+num_images = 5;
+num_samples = 4;
 total_maps = size(sos_map_d2, 3);
 
 for img_idx = 1:num_images
-    % 随机选择8个索引
+    % 随机选择4个索引
     random_indices = randperm(total_maps, num_samples);
 
     % 创建一个新的图形窗口
     figure;
 
-    % 绘制8个子图
+    % 绘制4个子图
     for i = 1:num_samples
-        subplot(2, 4, i); % 创建2行4列的子图布局
+        subplot(2, 2, i); % 创建2行2列的子图布局
         imagesc(sos_map_d2(:, :, random_indices(i))); % 绘制声速图
         colormap gray; % 设置颜色映射为灰度
         colorbar; % 显示颜色条
         axis equal tight; % 设置坐标轴比例相等并紧凑显示
-        title(sprintf('sos map %d', random_indices(i))); % 设置子图标题
     end
 
     % 设置整体图像标题
@@ -70,7 +70,7 @@ for img_idx = 1:num_images
     close(gcf);
 end
 ```
-10. 似乎散射体的大小过大了，位置也不正确，应该更靠下，参考：dx=0.025mm，人体皮肤厚度0.5~4mm ->起始的Nz可选择为20~160;软组织的可以，骨骼的应该小，而且位于下部，且仅有一个，先不做含骨骼的
+10. 似乎散射体的大小过大了，位置也不正确，应该更靠下，参考：dx=0.025mm，人体皮肤厚度0.5-4mm ->起始的Nz可选择为20-160;软组织的可以，骨骼的应该小，而且位于下部，且仅有一个，先不做含骨骼的
 11. 可以绘制椭圆了！DAS结果还可以：        
     ![das](https://github.com/user-attachments/assets/e143f779-86ac-4e4c-a002-c32448b3e9c5)
 
@@ -82,4 +82,6 @@ end
               <img width="680" alt="pa参数1" src="https://github.com/user-attachments/assets/fb859154-586c-40f1-912a-acbfb3549e09" />    
                <img width="632" alt="pa参数2" src="https://github.com/user-attachments/assets/72af28d8-01ac-40cb-8272-ede8d734c172" />
 
-
+1. 昨晚设置的生成2000张，内存会挤爆写不下，最多到969张，以后还是分批进行比较好
+2. 将保存和抽样检查的函数单独模块化；
+3. 1024*128，这对吗？需要改成256吗？看一下是线阵还是环阵
