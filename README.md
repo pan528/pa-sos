@@ -76,10 +76,10 @@ end
     ![das](https://github.com/user-attachments/assets/e143f779-86ac-4e4c-a002-c32448b3e9c5)
 
 ## 2-21
-### - [ ] 周报
-    - [ ] 单一背景
-    - [ ] 2层
-    - [ ] 3层
+### - [x] 周报
+    - [x] 单一背景
+    - [x] 2层
+    - [x] 3层
 ### - [x] 模型：
     - [x] 不同背景声速；
     - [x] 散射体软组织声速      
@@ -90,7 +90,12 @@ end
 2. 将保存和抽样检查的函数单独模块化；
 3. - [x] 1024*128，这对吗？需要改成256吗？看一下是线阵还是环阵
          **是线阵**
-4. 分界面位置随机生成，分界面两边的声速随机在`c_backgroundd * [0.9, 1.1]`之间；
+4. 增加功能方便查看进程：
+```python
+   % 输出当前循环次数
+    disp(['Running simulation ', num2str(i), ' of ', num2str(total_sim)]);
+```
+5. 分界面位置随机生成，分界面两边的声速随机在`c_backgroundd * [0.9, 1.1]`之间；
    ```python
    % speed of sound distributions
     % 背景声速分布
@@ -169,7 +174,7 @@ end
 总结：
 这段代码定义了一个线性阵列传感器，包含128个元素，每个元素之间有一定的间隙（kerf）。传感器掩码表示传感器的位置和方向性，方向性角度设置为垂直于阵列平面。传感器掩码的大小与计算网格（kgrid）的大小相同。
 ### 重建函数
-目前属于一个没跑通的状态，额，kgrid和mask匹配还有问题
+目前属于一个没跑通的状态，额，kgrid和mask匹配还有问题:            
 错误信息表明在 `kspaceFirstOrder2D` 函数中，尝试将 `sensor.time_reversal_boundary_data` 的数据赋值给 `p(sensor_mask_index)` 时，左侧和右侧的元素数目不同。这通常是由于 `sensor.time_reversal_boundary_data` 的大小与 `sensor.mask` 的大小不匹配。
 ![image](https://github.com/user-attachments/assets/2d36676e-ad11-41a9-a323-347479481928)
 
@@ -180,4 +185,8 @@ end
 
 2. **确保 `sensor.mask` 的大小与 `kgrid` 的大小匹配**：
     - 确保 `sensor.mask` 的大小与 `kgrid` 的大小相同。
-
+#### 尝试1：将sensor换成和传播过程完全一样的，其他参数（Nx,Ny,dx,PML参数etc.）也修改一致
+![传播过程](https://github.com/user-attachments/assets/a1626168-c04a-44aa-8c97-c6d580fd96a9)
+![重建报错](https://github.com/user-attachments/assets/c8966be2-9d41-4c96-8964-b9f53a1f4268)         
+但是没什么用kkk      
+好奇怪。。。。不过我确实不怎么会用重建工具
