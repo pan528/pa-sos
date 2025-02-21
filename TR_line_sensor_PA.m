@@ -96,7 +96,7 @@ for k = 1:2 % 对于每一帧数据，首先进行两次上采样，分别是4�
     % set the input options
     input_args = {'PMLInside', false, 'PMLSize', [pml_x_size, pml_y_size],'PlotPML', false, 'Smooth', false,'PlotLayout',true}; 
     % run the simulation
-    p0_recon(:,:,k) = kspaceFirstOrder2D(kgrid, medium, source, sensor, input_args{:});    
+    p0_recon(:,:,k) = kspaceFirstOrder2DG(kgrid, medium, source, sensor, input_args{:});    
 end 
 
 %% plot 
