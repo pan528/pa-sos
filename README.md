@@ -86,3 +86,51 @@ end
 2. 将保存和抽样检查的函数单独模块化；
 3. - [ ] 1024*128，这对吗？需要改成256吗？看一下是线阵还是环阵
 4. 分界面位置随机生成，分界面两边的声速随机在`c_backgroundd * [0.9, 1.1]`之间；
+   ```python
+   % speed of sound distributions
+    % 背景声速分布
+    % background
+    c0_random_seed = 1400 + (1600-1400)*rand; % uniform distribution in [1400 1600];
+    c0_background = c0_random_seed; % sound speed [m/s]
+    medium_sos = c0_background *ones(Nz, Nx); 
+    medium_sos_echo = c0_background *ones(Nz, Nx);
+    % 通过修改 medium_sos 和 medium_sos_echo 的值来实现不同区域的声速分布
+    % inclusions 
+    % 设置不同区域的声速分布-3层
+    option=1 % 选择是否设置不同区域的声速分布
+    if option == 1
+        % 随机生成分界面位置
+        boundary1 = randi([1, Nz/2]);
+        boundary2 = randi([boundary1+1, Nz]);
+
+        % 随机生成分界面两边的声速
+        sos_upper = c0_background * (0.9 + (1.1 - 0.9) * rand);
+        sos_middle = c0_background * (0.9 + (1.1 - 0.9) * rand);
+        sos_lower = c0_background * (0.9 + (1.1 - 0.9) * rand);
+
+        % 设置声速分布
+        medium_sos(1:boundary1, :) = sos_upper; % 上部区域
+        medium_sos(boundary1+1:boundary2, :) = sos_middle; % 中部区域
+        medium_sos(boundary2+1:end, :) = sos_lower; % 下部区域
+
+        medium_sos_echo(1:boundary1, :) = sos_upper; % 上部区域
+        medium_sos_echo(boundary1+1:boundary2, :) = sos_middle; % 中部区域
+        medium_sos_echo(boundary2+1:end, :) = sos_lower; % 下部区域
+    end
+    % 设置不同区域的声速分布-2层
+    if option == 2
+        % 随机生成分界面位置
+        boundary = randi([1, Nz]);
+
+        % 随机生成分界面两边的声速
+        sos_upper = c0_background * (0.9 + (1.1 - 0.9) * rand);
+        sos_lower = c0_background * (0.9 + (1.1 - 0.9) * rand);
+
+        % 设置声速分布
+        medium_sos(1:boundary, :) = sos_upper; % 上部区域
+        medium_sos(boundary+1:end, :) = sos_lower; % 下部区域
+
+        medium_sos_echo(1:boundary, :) = sos_upper; % 上部区域
+        medium_sos_echo(boundary+1:end, :) = sos_lower; % 下部区域
+    end
+   ```
