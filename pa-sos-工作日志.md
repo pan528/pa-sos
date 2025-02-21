@@ -190,6 +190,11 @@ end
 好奇怪。。。。不过我确实不怎么会用重建工具
 #### 解决：上采样！就可以了。。。然后保留原来的mask代码，就是用自己的电脑跑非常地慢
 请看vcr，跑一张图需要一个多小时，这就是纯集显的实力：
-![image](https://github.com/user-attachments/assets/36b38856-d473-4522-988b-6d82d3cc6499)
-#### 改进方向：GPU加速✔
+![image](https://github.com/user-attachments/assets/36b38856-d473-4522-988b-6d82d3cc6499)   
+![image](https://github.com/user-attachments/assets/ff1a5f8c-465a-4392-895c-15bae39e0c99)
+
+#### 改进方向：GPU加速✔ 可以跑通，但是，结果很恶心。（用自带的绘图会报错，copilot可以绘图但出来依托）
+![image](https://github.com/user-attachments/assets/91e2846f-7309-4b9b-83e4-1e75c55395a7)
+![TR初步结果](https://github.com/user-attachments/assets/edd3d4f3-e7bb-41ce-b99c-8eafd42c9d62)
+
 
