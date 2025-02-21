@@ -6,36 +6,44 @@
 % PA_raw_data: 1024*128*n (timesteps*numberofchannels*numberofframes)
 % sos_map: 384*384 
 %------------------------------------------------------------------%
+
+%%
+clear all
+close all;
+%
 %% 
-% ´´½¨¼ÆËãÍø¸ñ
+load('data_0221_164933.mat');
+% åˆ›å»ºè®¡ç®—ç½‘æ ¼
 % assign the grid size and create the computational grid 
 Nx = 1536;
 Ny = 1536;
 dx = 0.025e-3;
 dy = 0.025e-3; 
+pml_y_size = 64;                % [grid points]
+pml_x_size = 96;                % [grid points]
 kgrid = kWaveGrid(Nx, dx, Ny, dy);
 
-% ÉèÖÃÖØ½¨µÄÊ±¼äÊı×é 
-% Õâ¶Î´úÂëÉèÖÃÁËÖØ½¨¹ı³ÌÖĞµÄÊ±¼äÊı×é¡£cfl ÊÇ¿ÂÀÊÊı£¬ÓÃÓÚÈ·¶¨Ê±¼ä²½³¤µÄÎÈ¶¨ĞÔÌõ¼ş¡£
-% estimated_dt ÊÇ¹À¼ÆµÄÊ±¼ä²½³¤£¬¶ÔÓ¦ÓÚ40 MHzµÄ²ÉÑùÆµÂÊ¡£
-% t_end ÊÇÊ±¼äÊı×éµÄ½áÊøÊ±¼ä¡£kgrid.makeTime º¯Êı¸ù¾İ¸ø¶¨µÄ²ÎÊıÉú³ÉÊ±¼äÊı×é£¬²¢½«Æä¸³Öµ¸ø kgrid.t_array¡£     
+% è®¾ç½®é‡å»ºçš„æ—¶é—´æ•°ç»„ 
+% è¿™æ®µä»£ç è®¾ç½®äº†é‡å»ºè¿‡ç¨‹ä¸­çš„æ—¶é—´æ•°ç»„ã€‚cfl æ˜¯æŸ¯æœ—æ•°ï¼Œç”¨äºç¡®å®šæ—¶é—´æ­¥é•¿çš„ç¨³å®šæ€§æ¡ä»¶ã€‚
+% estimated_dt æ˜¯ä¼°è®¡çš„æ—¶é—´æ­¥é•¿ï¼Œå¯¹åº”äº40 MHzçš„é‡‡æ ·é¢‘ç‡ã€‚
+% t_end æ˜¯æ—¶é—´æ•°ç»„çš„ç»“æŸæ—¶é—´ã€‚kgrid.makeTime å‡½æ•°æ ¹æ®ç»™å®šçš„å‚æ•°ç”Ÿæˆæ—¶é—´æ•°ç»„ï¼Œå¹¶å°†å…¶èµ‹å€¼ç»™ kgrid.t_arrayã€‚     
 % time array for the reconstruction 
 cfl=0.3;
 estimated_dt = 1/160000000; % corresponds to a sampling frequency of 40 MHz 
-t_end = estimated_dt * 4095;
-kgrid.makeTime([1400 1700],cfl,t_end);
+t_end = estimated_dt * 8191;
+kgrid.makeTime([1400 1600],cfl,t_end);
 kgrid.t_array = (0:estimated_dt:t_end);
 
 % remove the initial pressure field from the source structure 
-% ´Ó source ½á¹¹ÌåÖĞÒÆ³ıÁË³õÊ¼Ñ¹Á¦³¡ p0¡£ÕâÊÇÒòÎªÔÚÊ±¼ä·´ÑİÖØ½¨ÖĞ£¬³õÊ¼Ñ¹Á¦³¡ÊÇÎ´ÖªµÄ¡£
-source.p0=1;    %ÎªÁËÈ·±£ source ½á¹¹ÌåÖĞÓĞ p0 ×Ö¶Î£¬È»ºóÊ¹ÓÃ rmfield º¯Êı½«ÆäÒÆ³ı¡£
+% ä» source ç»“æ„ä½“ä¸­ç§»é™¤äº†åˆå§‹å‹åŠ›åœº p0ã€‚è¿™æ˜¯å› ä¸ºåœ¨æ—¶é—´åæ¼”é‡å»ºä¸­ï¼Œåˆå§‹å‹åŠ›åœºæ˜¯æœªçŸ¥çš„ã€‚
+source.p0=1;    %ä¸ºäº†ç¡®ä¿ source ç»“æ„ä½“ä¸­æœ‰ p0 å­—æ®µï¼Œç„¶åä½¿ç”¨ rmfield å‡½æ•°å°†å…¶ç§»é™¤ã€‚
 source = rmfield(source,'p0');
 
 % US transducers 
-% ÉèÖÃÁË³¬Éù»»ÄÜÆ÷µÄÑÚÂëºÍ·½Ïò½Ç¡£
-% sensor.mask ÊÇÒ»¸ö´óĞ¡Îª Nx x Ny µÄ¾ØÕó£¬ÓÃÓÚ¶¨Òå»»ÄÜÆ÷µÄÎ»ÖÃ¡£
-% Ñ­»· for ii = 1:128 ½«»»ÄÜÆ÷µÄÎ»ÖÃÉèÖÃÎª1¡£
-% sensor.directivity_angle ÊÇÒ»¸öÓë sensor.mask ´óĞ¡ÏàÍ¬µÄ¾ØÕó£¬ÓÃÓÚ¶¨Òå»»ÄÜÆ÷µÄ·½Ïò½Ç¡£
+% è®¾ç½®äº†è¶…å£°æ¢èƒ½å™¨çš„æ©ç å’Œæ–¹å‘è§’ã€‚
+% sensor.mask æ˜¯ä¸€ä¸ªå¤§å°ä¸º Nx x Ny çš„çŸ©é˜µï¼Œç”¨äºå®šä¹‰æ¢èƒ½å™¨çš„ä½ç½®ã€‚
+% å¾ªç¯ for ii = 1:128 å°†æ¢èƒ½å™¨çš„ä½ç½®è®¾ç½®ä¸º1ã€‚
+% sensor.directivity_angle æ˜¯ä¸€ä¸ªä¸ sensor.mask å¤§å°ç›¸åŒçš„çŸ©é˜µï¼Œç”¨äºå®šä¹‰æ¢èƒ½å™¨çš„æ–¹å‘è§’ã€‚
 sensor.mask = zeros(Nx,Ny);
 for ii = 1:128
      sensor.mask(1,(6*ii-5):(6*ii-5+4))=1;
@@ -43,35 +51,50 @@ end
 sensor.directivity_angle=zeros(Nx,Ny);
 sensor.directivity_angle(sensor.mask == 1) = 0;
 
+% % define source and sensor masks (can be moved out of the outest loop) 
+% kerf = 1; 
+% groupspacing = 11; 
+% element_num = 128; 
+% source_shape = reshape((1:groupspacing)' + (0:element_num-1)*(kerf+groupspacing), 1, []);
+% x_offset = 1;          % [grid points]
+% source_m.u_mask = zeros(Nx, Ny); 
+% source_m.u_mask(x_offset, source_shape) = 1  ; 
+% % do not definie kerf 
+% %source_m.u_mask(x_offset,:)=1;
+% sensor_m.mask = source_m.u_mask ;
+% sensor_m.directivity_angle = sensor_m.mask;
+% sensor_m.directivity_angle(sensor_m.mask==1)=pi/2;
+% sensor_m.directivity_size = kgrid.dx;
+% 
+% source.u_mask=source_m.u_mask;
+% sensor=sensor_m;
+
 % assgin recorded PA raw data to the time reveral field
-% ·ÖÅä¼ÇÂ¼µÄPAÔ­Ê¼Êı¾İµ½Ê±¼ä·´×ª³¡
-num_frame = size(PA_raw_data,3);
+% åˆ†é…è®°å½•çš„PAåŸå§‹æ•°æ®åˆ°æ—¶é—´åè½¬åœº
+num_frame = size(non_filtered_rf_normalized,3);
 
-
-for k = 1:2 % ¶ÔÓÚÃ¿Ò»Ö¡Êı¾İ£¬Ê×ÏÈ½øĞĞÁ½´ÎÉÏ²ÉÑù£¬·Ö±ğÊÇ4±¶ºÍ5±¶¡£È»ºó½«ÉÏ²ÉÑùºóµÄÊı¾İ¸³Öµ¸ø sensor.time_reversal_boundary_data¡£
+for k = 1:2 % å¯¹äºæ¯ä¸€å¸§æ•°æ®ï¼Œé¦–å…ˆè¿›è¡Œä¸¤æ¬¡ä¸Šé‡‡æ ·ï¼Œåˆ†åˆ«æ˜¯4å€å’Œ5å€ã€‚ç„¶åå°†ä¸Šé‡‡æ ·åçš„æ•°æ®èµ‹å€¼ç»™ sensor.time_reversal_boundary_dataã€‚
     % signal upsampling 
-    rf_data = PA_raw_data(:,:,k);   % »ñÈ¡ PA_raw_data µÄµÚÈıÎ¬¶È´óĞ¡£¬¼´Ö¡Êı num_frame¡£
-%     rfdata_upsampled = resample(rf_data,4,1);   
-%     % rfdata_raw= resample('rfdata_upsampled',5,1);
-%     % Ê×ÏÈ¶Ô rfdata_upsampled ½øĞĞ×ªÖÃ£¬È»ºó¶Ô×ªÖÃºóµÄÊı¾İ½øĞĞÉÏ²ÉÑù
+    rf_data = non_filtered_rf_normalized(:,:,k);   % è·å– PA_raw_data çš„ç¬¬ä¸‰ç»´åº¦å¤§å°ï¼Œå³å¸§æ•° num_frameã€‚
+    rfdata_upsampled = resample(rf_data,4,1);   
+    rfdata_raw= resample( rfdata_upsampled',5,1);
+%     % é¦–å…ˆå¯¹ rfdata_upsampled è¿›è¡Œè½¬ç½®ï¼Œç„¶åå¯¹è½¬ç½®åçš„æ•°æ®è¿›è¡Œä¸Šé‡‡æ ·
 %     rfdata_raw= resample(rfdata_upsampled',5,1);
-    rfdata_raw = rf_data;
     sensor.time_reversal_boundary_data = rfdata_raw;
 
     % sound speed of the propagation medium
-    % ¸ù¾İ sos_map µÄ´óĞ¡À´ÉèÖÃ´«²¥½éÖÊµÄÉùËÙ medium.sound_speed¡£
-    % Èç¹û sos_map Ö»ÓĞÒ»¸öÇĞÆ¬£¬ÔòÖ±½Óµ÷ÕûÆä´óĞ¡£»·ñÔò£¬µ÷Õûµ±Ç°Ö¡µÄÇĞÆ¬´óĞ¡¡£ÉùËÙ±»È¡ÕûÒÔÈ·±£ÊÇÕûÊıÖµ¡£
-    if size(sos_map,3)==1
-        medium.sound_speed = floor(imresize(sos_map,[Nx,Ny]));
+    % æ ¹æ® sos_map çš„å¤§å°æ¥è®¾ç½®ä¼ æ’­ä»‹è´¨çš„å£°é€Ÿ medium.sound_speedã€‚
+    % å¦‚æœ sos_map åªæœ‰ä¸€ä¸ªåˆ‡ç‰‡ï¼Œåˆ™ç›´æ¥è°ƒæ•´å…¶å¤§å°ï¼›å¦åˆ™ï¼Œè°ƒæ•´å½“å‰å¸§çš„åˆ‡ç‰‡å¤§å°ã€‚å£°é€Ÿè¢«å–æ•´ä»¥ç¡®ä¿æ˜¯æ•´æ•°å€¼ã€‚
+    if size(sos_map_d2,3)==1
+        medium.sound_speed = floor(imresize(sos_map_d2,[Nx,Ny]));
     else
-        medium.sound_speed = floor(imresize(sos_map(:,:,k),[Nx,Ny])); % sos estimation 
+        medium.sound_speed = floor(imresize(sos_map_d2(:,:,k),[Nx,Ny])); % sos estimation 
     end
     %medium.sound_speed = 1540; % conventional assumption 
     medium.density=1020;
 
     % set the input options
-    input_args = {'Smooth', false, 'PMLInside', false, 'PlotPML', false,'PlotLayout', true,'PMLSize',25};
-    
+    input_args = {'PMLInside', false, 'PMLSize', [pml_x_size, pml_y_size],'PlotPML', false, 'Smooth', false,'PlotLayout',true}; 
     % run the simulation
     p0_recon(:,:,k) = kspaceFirstOrder2D(kgrid, medium, source, sensor, input_args{:});    
 end 
