@@ -4,15 +4,16 @@
 1. 下载了训练数据，5.7G，6000张
 2. 启用硬盘，整理了一下现有的结果和材料
 3. ip地址：10.192.44.228 id:panyuewen pw:123456789pyw@ 连不上
-4. git 上传和拉取都不成功，好想放弃orz
-5. 重新修改代码，增加了分区调整声速板块
-6. 生成数据似乎逐帧保存好一点呢，增加该功能；->已解决，保存一次循环的全部数据，含`no_filtered_rf_norm_noisy` 和 `sos_map_d2` 两个变量，命名格式：背景分层数-散射体材质-数量
-7. rf数据增加了agwn，可以避免模型过拟合：
+   - [x] 连上了
+5. git 上传和拉取都不成功，好想放弃orz
+6. 重新修改代码，增加了分区调整声速板块
+7. 生成数据似乎逐帧保存好一点呢，增加该功能；->已解决，保存一次循环的全部数据，含`no_filtered_rf_norm_noisy` 和 `sos_map_d2` 两个变量，命名格式：背景分层数-散射体材质-数量
+8. rf数据增加了agwn，可以避免模型过拟合：
     - 模拟真实环境：在实际的超声成像过程中，RF数据通常会受到各种噪声的影响，包括热噪声、量化噪声和环境噪声。通过在模拟数据中添加AWGN，可以更好地模拟这些噪声，从而使训练数据更接近实际情况。
     - 提高模型的鲁棒性：在训练神经网络时，使用包含噪声的训练数据可以提高模型的鲁棒性，使其在处理实际数据时表现更好。模型将学会在存在噪声的情况下提取有用的特征，从而提高其泛化能力。
     - 防止过拟合：添加噪声可以增加训练数据的多样性，从而防止模型过拟合。过拟合是指模型在训练数据上表现很好，但在测试数据上表现不佳。通过添加噪声，可以使模型更好地适应不同的输入数据，提高其在未见数据上的表现。
     - 增强数据集：添加噪声是一种数据增强技术，可以增加训练数据的数量和多样性，从而提高模型的性能。通过在RF数据中添加不同程度的噪声，可以生成更多的训练样本，帮助模型更好地学习。 
-8. 增加检查功能：随机抽取8个sos_map_d2中的声速图并绘制为8个子图
+9. 增加检查功能：随机抽取8个sos_map_d2中的声速图并绘制为8个子图
     ```python
     % 随机选择8个索引
     num_samples = 8;
@@ -75,8 +76,11 @@ end
     ![das](https://github.com/user-attachments/assets/e143f779-86ac-4e4c-a002-c32448b3e9c5)
 
 ## 2-21
-- [ ] 周报
-- [ ] 模型：
+### - [ ] 周报
+    - [ ] 单一背景
+    - [ ] 2层
+    - [ ] 3层
+### - [x] 模型：
     - [x] 不同背景声速；
     - [x] 散射体软组织声速      
               <img width="680" alt="pa参数1" src="https://github.com/user-attachments/assets/fb859154-586c-40f1-912a-acbfb3549e09" />    
@@ -135,3 +139,16 @@ end
         medium_sos_echo(boundary+1:end, :) = sos_lower; % 下部区域
     end
    ```
+### 重建函数
+目前属于一个没跑通的状态，额，kgrid和mask匹配还有问题
+错误信息表明在 `kspaceFirstOrder2D` 函数中，尝试将 `sensor.time_reversal_boundary_data` 的数据赋值给 `p(sensor_mask_index)` 时，左侧和右侧的元素数目不同。这通常是由于 `sensor.time_reversal_boundary_data` 的大小与 `sensor.mask` 的大小不匹配。
+![image](https://github.com/user-attachments/assets/2d36676e-ad11-41a9-a323-347479481928)
+
+以下是一些可能的解决方案：
+
+1. **检查 `sensor.time_reversal_boundary_data` 的大小**：
+    - 确保 `sensor.time_reversal_boundary_data` 的大小与 `sensor.mask` 的大小匹配。
+
+2. **确保 `sensor.mask` 的大小与 `kgrid` 的大小匹配**：
+    - 确保 `sensor.mask` 的大小与 `kgrid` 的大小相同。
+
