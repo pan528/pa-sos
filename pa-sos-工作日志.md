@@ -197,4 +197,5 @@ end
 ![image](https://github.com/user-attachments/assets/91e2846f-7309-4b9b-83e4-1e75c55395a7)
 ![TR初步结果](https://github.com/user-attachments/assets/edd3d4f3-e7bb-41ce-b99c-8eafd42c9d62)
 
-
+## 2.22 周末还爬起来写代码真了不起
+- [ ] 与其研究重建问题不如先看看环阵如何设置，弄出环阵比较好用小鼠的数据！然后可以把骨骼设置进去之类的（中心的⚪）
