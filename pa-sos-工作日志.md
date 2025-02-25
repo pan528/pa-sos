@@ -206,11 +206,13 @@ end
 3. 汇报纪要：1）老板要网络跑出来的初步结果，orz，那就各炼一个丹+remix炼丹吧（普通cnn）；2）课题变成了sos & limited angle，好烦，呃，不早说，limited angle简单多了；3）为什么要这么设置，sos_map和sos-map-based reconstruction是两个工作量吧！orz 4）添加仿体实验（五花肉）；5）尺寸问题，大概差不多就行（……）真的假的，但是还原出来应该是大小对齐才对吧，或者是用插值？不过我现在的数据甚至是线阵而不是环阵
 - [x] 在远程服务器安装vscode，又从零开始配置环境了呃
 ## 2.25 开始炼丹
-1. 发现重大问题：mat文件的保存格式，现在保存了低版本，所以h5py库无法读取：
+- [x] 发现重大问题：mat文件的保存格式，现在保存了低版本，所以h5py库无法读取：————>已解决，手动改为v7.3
    ![image](https://github.com/user-attachments/assets/d9631bf5-bdd3-467d-947d-c1db06d77348)      
    需要改版本，不知道之前跑的数据能不能重新保存改回来，否则也麻烦：
    ![image](https://github.com/user-attachments/assets/62e5a8a4-8b62-44d2-a6b6-4de7550e0d58)
-2. 数据的维数设计和原始代码没对齐：
+- [x] 数据的维数设计和原始代码没对齐————>改为v7.3之后自动解决了
    ![image](https://github.com/user-attachments/assets/6c8f732f-f7c3-4a98-915b-5ebf3342c6ba)
    但我的是帧数在后，呃：
    ![image](https://github.com/user-attachments/assets/c1016ffe-8480-4395-a3b6-b0a8a0ecbc81)
+- [ ] gpu加速，现在用的是cpu加速，占用太夸张而且慢，改回tensorflow-gpu，要解决版本冲突问题
+- [ ] 将分段的数据全部读取在同一个文件里！直接在data_loader里面合并得了
