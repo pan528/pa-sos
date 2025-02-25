@@ -215,4 +215,10 @@ end
    但我的是帧数在后，呃：
    ![image](https://github.com/user-attachments/assets/c1016ffe-8480-4395-a3b6-b0a8a0ecbc81)
 - [ ] gpu加速，现在用的是cpu加速，占用太夸张而且慢，改回tensorflow-gpu，要解决版本冲突问题
-- [ ] 将分段的数据全部读取在同一个文件里！直接在data_loader里面合并得了
+      CUDA版本：12.8 ![image](https://github.com/user-attachments/assets/9c2f5202-e70f-497f-905f-4078a713d2a3)
+      呃不知道为什么没办法用gpu，估计又是版本的问题：
+      ![image](https://github.com/user-attachments/assets/9dc5fe51-2f3b-44ff-98b3-58252f05e684)
+
+- [x] 将分段的数据全部读取在同一个文件里！直接在data_loader里面合并得了
+- [ ] 使用save_model的pre_train.h5作为预训练模型效果会好，但是，只能修改24个参数，约等于没有修改。。。所以训练批次稍微多一点loss曲线就不怎么动了
+- [ ] 测试。等我吃个饭回来再看吧~
