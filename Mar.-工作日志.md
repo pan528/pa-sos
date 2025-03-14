@@ -30,3 +30,7 @@
   OUTPUTS:
       circle          - 2 x num_points array of Cartesian coordinates
   ```
+## 3-14
+1. 大战tensorflow-gpu，累吐了        
+   <img width="428" alt="image" src="https://github.com/user-attachments/assets/bb066a30-d46d-42f9-869f-d0e6f10cd871" />
+
