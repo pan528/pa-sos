@@ -83,7 +83,7 @@ history = model.fit(data_input, data_target, batch_size=32, epochs=100, validati
           callbacks=[lr_scheduler, early_stopping]  # 添加早停回调
       )
      ```
-2. 保存最优checkpoint：
+2. 保存最优checkpoint(可以在每个 epoch 结束时自动保存模型。即使训练被中断，您仍然可以加载最近保存的模型。)：
    ```python
     from tensorflow.keras.callbacks import ModelCheckpoint
     
