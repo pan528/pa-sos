@@ -85,30 +85,30 @@ history = model.fit(data_input, data_target, batch_size=32, epochs=100, validati
      ```
 2. 保存最优checkpoint：
    ```python
-   from tensorflow.keras.callbacks import ModelCheckpoint
-
-# 定义模型保存路径
-checkpoint_path = os.path.join(save_path, 'best_model.h5')
-
-# 定义 ModelCheckpoint 回调函数
-model_checkpoint = ModelCheckpoint(
-    filepath=checkpoint_path,       # 保存模型的路径
-    monitor='val_loss',             # 监控的指标（如验证集损失）
-    save_best_only=True,            # 仅保存性能最好的模型
-    save_weights_only=False,        # 保存整个模型（包括结构和权重）
-    mode='min',                     # 当监控指标越小时性能越好
-    verbose=1                       # 输出保存信息
-)
-
-# 在 callbacks 中添加 model_checkpoint
-history = model.fit(
-    data_input, 
-    data_target, 
-    batch_size=batch_size, 
-    epochs=epochs, 
-    verbose=1, 
-    validation_split=validation_split, 
-    shuffle=True, 
-    callbacks=[lr_scheduler, early_stopping, model_checkpoint]  # 添加 ModelCheckpoint
-)
+    from tensorflow.keras.callbacks import ModelCheckpoint
+    
+    # 定义模型保存路径
+    checkpoint_path = os.path.join(save_path, 'best_model.h5')
+    
+    # 定义 ModelCheckpoint 回调函数
+    model_checkpoint = ModelCheckpoint(
+        filepath=checkpoint_path,       # 保存模型的路径
+        monitor='val_loss',             # 监控的指标（如验证集损失）
+        save_best_only=True,            # 仅保存性能最好的模型
+        save_weights_only=False,        # 保存整个模型（包括结构和权重）
+        mode='min',                     # 当监控指标越小时性能越好
+        verbose=1                       # 输出保存信息
+    )
+    
+    # 在 callbacks 中添加 model_checkpoint
+    history = model.fit(
+        data_input, 
+        data_target, 
+        batch_size=batch_size, 
+        epochs=epochs, 
+        verbose=1, 
+        validation_split=validation_split, 
+        shuffle=True, 
+        callbacks=[lr_scheduler, early_stopping, model_checkpoint]  # 添加 ModelCheckpoint
+    )
    ```
