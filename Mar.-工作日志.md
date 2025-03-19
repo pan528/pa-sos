@@ -61,7 +61,7 @@ history = model.fit(data_input, data_target, batch_size=32, epochs=100, validati
    ![image](https://github.com/user-attachments/assets/de126b3b-82e9-4b5c-a09e-8866b6767fcc)
 
 ## 3-18
-1. 引入早停策略：
+1. 引入早停策略✔：
      ```python
      from tensorflow.keras.callbacks import EarlyStopping
       # 定义早停回调函数
@@ -83,7 +83,7 @@ history = model.fit(data_input, data_target, batch_size=32, epochs=100, validati
           callbacks=[lr_scheduler, early_stopping]  # 添加早停回调
       )
      ```
-2. 保存最优checkpoint(可以在每个 epoch 结束时自动保存模型。即使训练被中断，您仍然可以加载最近保存的模型。)：
+2. 保存最优checkpoint✔(可以在每个 epoch 结束时自动保存模型。即使训练被中断，您仍然可以加载最近保存的模型。)：
    ```python
     from tensorflow.keras.callbacks import ModelCheckpoint
     
@@ -112,3 +112,8 @@ history = model.fit(data_input, data_target, batch_size=32, epochs=100, validati
         callbacks=[lr_scheduler, early_stopping, model_checkpoint]  # 添加 ModelCheckpoint
     )
    ```
+## 3-19
+1. 终于能正常解冻了，呵呵
+       ![image](https://github.com/user-attachments/assets/07000378-5217-49b3-9abc-1afb101aa8dd)
+2. 让用户在运行代码时输入 model_name √
+3. 开始瞎编loss函数
