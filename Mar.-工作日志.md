@@ -113,7 +113,20 @@ history = model.fit(data_input, data_target, batch_size=32, epochs=100, validati
     )
    ```
 ## 3-19
-1. 终于能正常解冻了，呵呵
+1. 终于能正常解冻了，呵呵    
        ![image](https://github.com/user-attachments/assets/07000378-5217-49b3-9abc-1afb101aa8dd)
 2. 让用户在运行代码时输入 model_name √
 3. 开始瞎编loss函数
+4. 瞎编了cnn-transformer-unet的大联合网络
+5. 炼了一个解冻倒数两层+TF_block的，50epoch，性能没有明显提高，**可以让gpt分析一下原因**
+## 3-20
+### 1. 关于cnn-transformer-unet的大联合网络：跑不动    
+     ![image](https://github.com/user-attachments/assets/5e44fba2-ec1c-4330-bdc2-264b2f25b7a9)
+#### 1.1 skip connection进行concatenate时通道数没对齐——>已解决
+#### 1.2 如何增加if __name__ == '__main__':测试
+#### 1.3 如何检查每一层的张量output shape
+#### 1.4 如何打印结构
+### 2. unet-transformer
+姐们的本质是unet。。。当然文章里没提！**可以把这个当作新的点去给小老板汇报**
+#### 2.1 transformer引入位置不同可以做文章，encoder&decoder可以各放一个，看看放在哪里的效果好
+#### 2.2 skip connection位置的选择
