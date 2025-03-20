@@ -130,3 +130,7 @@ history = model.fit(data_input, data_target, batch_size=32, epochs=100, validati
 姐们的本质是unet。。。当然文章里没提！**可以把这个当作新的点去给小老板汇报**
 #### 2.1 transformer引入位置不同可以做文章，encoder&decoder可以各放一个，看看放在哪里的效果好
 #### 2.2 skip connection位置的选择
+### 3 batch_size
+#### 调小了，太慢（=4）
+![image](https://github.com/user-attachments/assets/35d46543-96b7-4b66-b233-19cca7e06845)
+#### 调大了 试一下（=16）
