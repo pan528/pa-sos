@@ -134,3 +134,54 @@ history = model.fit(data_input, data_target, batch_size=32, epochs=100, validati
 #### 调小了，太慢（=4）
 ![image](https://github.com/user-attachments/assets/35d46543-96b7-4b66-b233-19cca7e06845)
 #### 调大了 试一下（=16）
+
+## 3-21
+### 水周报，交了现有模型和预训练模型在1、2、3层背景下的测试结果图与metrics
+### 内存不足问题：
+![image](https://github.com/user-attachments/assets/15de8ff9-96f6-4283-888f-b0d16eb8f632)        
+错误信息表明，`train_test_split` 函数在尝试分割数据时，无法为一个形状为 `(8695, 384, 384, 1)` 且数据类型为 `float64` 的数组分配约 **9.55 GiB** 的内存。这是由于内存不足导致的。
+1. **数据规模过大**：
+   - 数据集的大小为 `(8695, 384, 384, 1)`，每个样本占用的内存为 `384 * 384 * 8 bytes = 1.18 MB`（`float64` 类型每个元素占用 8 字节）。
+   - 总内存需求为 `8695 * 1.18 MB ≈ 9.55 GiB`，超出了系统可用内存。
+2. **数据类型不必要地使用了 `float64`**：
+   - `float64` 是双精度浮点数，通常在深度学习中并不需要这么高的精度。
+   - 使用 `float32` 或 `float16` 可以显著减少内存占用。
+#### **解决办法1：降低精度**✔
+
+将数据从 `float64` 转换为 `float32`，这可以将内存占用减少一半。
+
+在加载数据后，添加以下代码：
+```python
+data_input = data_input.astype('float32')
+data_target = data_target.astype('float32')
+```
+
+---
+
+#### **方法 2：分批加载数据**✔
+如果数据集过大，可以考虑使用生成器或 `tf.data` API 分批加载数据，而不是一次性加载到内存中。
+
+示例代码：
+```python
+def data_generator(data_input, data_target, batch_size):
+    for i in range(0, len(data_input), batch_size):
+        yield data_input[i:i+batch_size], data_target[i:i+batch_size]
+
+# 使用生成器
+batch_size = 32
+train_gen = data_generator(data_input, data_target, batch_size)
+```
+
+---
+
+#### **方法 3：分割数据时使用更小的子集**
+如果数据集过大，可以先随机抽取一部分数据进行训练和测试。
+
+示例代码：
+```python
+subset_size = 2000  # 选择一个较小的子集
+data_input = data_input[:subset_size]
+data_target = data_target[:subset_size]
+```
+
+---
