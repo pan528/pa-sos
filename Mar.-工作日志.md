@@ -185,3 +185,191 @@ data_target = data_target[:subset_size]
 ```
 
 ---
+
+# 3-28 上工
+我服了，这玩意。调整版本中
+## 调整模型保存格式
+![image](https://github.com/user-attachments/assets/24470454-37c1-4631-82f0-15a4c83a362e)          
+这个警告是因为您正在使用 HDF5 文件格式（`.h5`）保存模型，而 TensorFlow/Keras 推荐使用新的 `.keras` 文件格式或 TensorFlow SavedModel 格式。以下是解决方法：
+
+---
+
+### **1. 使用 `.keras` 文件格式**
+将保存模型的文件扩展名从 `.h5` 改为 `.keras`，以使用新的 Keras 文件格式。
+
+#### 修改代码：
+```python
+# 修改保存模型的路径
+model.save(save_path + './%s_%s_epoch%d_loss%.4f.keras' % (model_flag, current_date, epochs, final_loss))
+```
+
+---
+
+### **2. 使用 TensorFlow SavedModel 格式**
+如果您不需要特定的文件扩展名，可以直接保存为 TensorFlow 的 SavedModel 格式（默认格式）。
+
+#### 修改代码：
+```python
+# 保存为 TensorFlow SavedModel 格式
+model.save(save_path + './%s_%s_epoch%d_loss%.4f' % (model_flag, current_date, epochs, final_loss))
+```
+SavedModel 格式会将模型保存为一个目录，而不是单个文件。
+
+---
+
+### **3. 如果需要继续使用 `.h5` 格式**
+如果您需要与旧版工具或框架兼容，可以忽略此警告，继续使用 `.h5` 格式保存模型。警告不会影响模型的功能。
+
+---
+
+### **4. 总结**
+- **推荐**：切换到 `.keras` 或 TensorFlow SavedModel 格式，以获得更好的兼容性和功能支持。
+- **兼容性需求**：如果需要与旧版工具兼容，可以继续使用 `.h5` 格式，但需要接受警告提示。
+
+如果您希望完全消除警告并使用推荐的格式，请选择 **1** 或 **2** 的方法。
+
+## 启用 TensorFlow Profiler分析模型的性能
+使用 TensorFlow Profiler 可以帮助您分析模型的性能，包括训练时间、GPU/CPU 使用情况、内存占用等。以下是如何在您的代码中集成 TensorFlow Profiler 的步骤：
+
+---
+
+### **1. 导入 TensorFlow Profiler**
+在代码中导入 TensorFlow Profiler：
+```python
+import tensorflow as tf
+```
+
+---
+
+### **2. 启用 TensorFlow Profiler**
+在训练模型之前启用 Profiler，并在训练结束后停止 Profiler。
+
+#### 示例代码：
+```python
+# 定义日志目录
+log_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'logs')
+
+# 启用 TensorFlow Profiler
+tf.profiler.experimental.start(log_dir)
+
+# 训练模型
+history = model.fit(
+    data_input,
+    data_target,
+    batch_size=batch_size,
+    epochs=epochs,
+    validation_split=validation_split,
+    shuffle=True,
+    callbacks=[lr_scheduler, early_stopping, model_checkpoint]
+)
+
+# 停止 TensorFlow Profiler
+tf.profiler.experimental.stop()
+```
+
+---
+
+### **3. 在 TensorBoard 中查看性能分析**
+TensorFlow Profiler 会将性能数据保存到指定的日志目录（如 `logs` 文件夹）。您可以使用 TensorBoard 查看这些数据。
+
+#### 启动 TensorBoard：
+在终端中运行以下命令：
+```bash
+tensorboard --logdir=logs
+```
+
+然后打开浏览器，访问 `http://localhost:6006` 查看性能分析结果。
+
+---
+
+### **4. 使用 TensorFlow Profiler 的回调**
+您还可以使用 TensorFlow 提供的 `TensorBoardProfilerCallback`，它会自动记录性能数据。
+
+#### 示例代码：
+```python
+from tensorflow.keras.callbacks import TensorBoard
+
+# 定义日志目录
+log_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'logs')
+
+# 创建 TensorBoard 回调
+tensorboard_callback = TensorBoard(
+    log_dir=log_dir,
+    histogram_freq=1,
+    profile_batch='10,20'  # 在第 10 到 20 个 batch 中记录性能数据
+)
+
+# 训练模型时添加回调
+history = model.fit(
+    data_input,
+    data_target,
+    batch_size=batch_size,
+    epochs=epochs,
+    validation_split=validation_split,
+    shuffle=True,
+    callbacks=[lr_scheduler, early_stopping, model_checkpoint, tensorboard_callback]
+)
+```
+
+---
+
+### **5. 分析性能数据**
+在 TensorBoard 中，您可以查看以下内容：
+- **Overview Page**：显示训练时间、设备利用率等。
+- **Trace Viewer**：详细显示每个操作的执行时间。
+- **GPU Utilization**：显示 GPU 的使用情况。
+- **Memory Profile**：显示内存使用情况。
+
+---
+
+### **6. 示例集成到您的代码**
+以下是将 TensorFlow Profiler 集成到您代码中的完整示例：
+```python
+import tensorflow as tf
+from tensorflow.keras.callbacks import TensorBoard
+
+# 定义日志目录
+log_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'logs')
+
+# 创建 TensorBoard 回调
+tensorboard_callback = TensorBoard(
+    log_dir=log_dir,
+    histogram_freq=1,
+    profile_batch='10,20'  # 在第 10 到 20 个 batch 中记录性能数据
+)
+
+# 启用 TensorFlow Profiler
+tf.profiler.experimental.start(log_dir)
+
+# 训练模型
+history = model.fit(
+    data_input,
+    data_target,
+    batch_size=batch_size,
+    epochs=epochs,
+    validation_split=validation_split,
+    shuffle=True,
+    callbacks=[lr_scheduler, early_stopping, model_checkpoint, tensorboard_callback]
+)
+
+# 停止 TensorFlow Profiler
+tf.profiler.experimental.stop()
+
+print(f"TensorFlow Profiler logs saved to {log_dir}")
+```
+
+---
+
+### **7. 注意事项**
+- **性能开销**：启用 Profiler 会增加训练时间，建议仅在调试或性能分析时使用。
+- **日志存储**：确保日志目录有足够的存储空间，尤其是在长时间训练时。
+- **GPU 支持**：如果使用 GPU，确保安装了正确版本的 CUDA 和 cuDNN。
+
+---
+
+### **总结**
+- **启用 Profiler**：使用 `tf.profiler.experimental.start()` 和 `tf.profiler.experimental.stop()`。
+- **使用 TensorBoard**：通过 `TensorBoard` 回调自动记录性能数据。
+- **分析数据**：在 TensorBoard 中查看训练时间、设备利用率和内存使用情况。
+
+通过这些步骤，您可以更好地了解模型的性能瓶颈并优化训练过程。
