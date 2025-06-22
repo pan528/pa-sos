@@ -85,8 +85,8 @@ source.u_mask = sensor.mask;
 
 % remove the initial pressure field from the source structure 
 % 从 source 结构体中移除了初始压力场 p0。这是因为在时间反演重建中，初始压力场是未知的。
-source.p0=1;    %为了确保 source 结构体中有 p0 字段，然后使用 rmfield 函数将其移除。
-source = rmfield(source,'p0');
+% source.p0=1;    %为了确保 source 结构体中有 p0 字段，然后使用 rmfield 函数将其移除。
+% source = rmfield(source,'p0');
 
 
 
@@ -99,7 +99,9 @@ for k = 1:num_frame % 对于每一帧数据，首先进行两次上采样，分�
     % rfdata_raw= resample('rfdata_upsampled',5,1);
     % 首先对 rfdata_upsampled 进行转置，然后对转置后的数据进行上采样
     rfdata_raw= resample(rfdata_upsampled',5,1);
-    sensor.time_reversal_boundary_data = rfdata_raw;
+    
+    sensor.time_reversal_boundary_data = rf_data';
+%     sensor.time_reversal_boundary_data = rfdata_raw;
 
     % sound speed of the propagation medium
     % 根据 sos_map 的大小来设置传播介质的声速 medium.sound_speed。
@@ -138,8 +140,21 @@ for k = 1:num_frame % 对于每一帧数据，首先进行两次上采样，分�
 
     % set the input options
     input_args = {'Smooth', false, 'PMLInside', false, 'PlotPML', false,'PlotLayout', true,'PMLSize',25};
-    
+
+        % 清理 source 结构体的多余字段（尤其是 p 和 p_mask）
+    if isfield(source, 'p'), source = rmfield(source, 'p'); end
+    if isfield(source, 'p_mask'), source = rmfield(source, 'p_mask'); end
+    if isfield(source, 'p0'), source = rmfield(source, 'p0'); end
+
     % run the simulation
     p0_recon(:,:,k) = kspaceFirstOrder2DG(kgrid, medium, source, sensor, input_args{:});    
 end 
 
+
+% 保存所有帧为图片
+for k = 1:num_frame
+    imwrite(mat2gray(p0_recon(:,:,k)), sprintf('recon_frame_%03d.png', k));
+end
+
+% 保存mat信号
+save('p0_recon.mat', 'p0_recon');
