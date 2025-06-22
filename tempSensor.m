@@ -106,7 +106,7 @@ for i = 1:total_sim
     
     % speed of sound distributions
     % background
-    c0_random_seed = 1400 + (1600-1400)*rand; % uniform distribution in [1400 1600];
+    c0_random_seed = 1450 + 100*rand; % uniform distribution in [1450 1550];
     c0_background = c0_random_seed; % sound speed [m/s]
     medium_sos = c0_background *ones(Nz, Nx); 
     medium_sos_echo = c0_background *ones(Nz, Nx);
@@ -334,6 +334,12 @@ x2 = center_x_mm + side/2;
 z1 = center_z_mm - side/2;
 z2 = center_z_mm + side/2;
 
+% 计算中心索引
+x1_idx = round(((Nx/2-1)*dx*1e3 - side/2)/(dx*1e3)) + 1;
+x2_idx = round(((Nx/2-1)*dx*1e3 + side/2)/(dx*1e3)) + 1;
+z1_idx = round(((Nz/2-1)*dz*1e3 - side/2)/(dz*1e3)) + 1;
+z2_idx = round(((Nz/2-1)*dz*1e3 + side/2)/(dz*1e3)) + 1;
+
 figure;
 subplot(1,2,1);
 imagesc(z, x, medium.density);
@@ -367,7 +373,7 @@ sensor.record={'p','p_final'};
 % input_args = {'PMLInside', false, 'PMLSize', [pml_x_size, pml_y_size],'PlotPML', false, 'Smooth', false}; 
 input_args = {'PMLInside', false, 'PMLSize', [pml_x_size, pml_y_size],'PlotPML', false, 'Smooth', false,'PlotLayout',true}; 
 % run the simulation
-sensor_data = permute(kspaceFirstOrder2D(kgrid, medium, source, sensor, input_args{:}),[2 1]);
+sensor_data = permute(kspaceFirstOrder2DG(kgrid, medium, source, sensor, input_args{:}),[2 1]);
 % sensor_data = permute(kspaceFirstOrder2DG(kgrid, medium, source, sensor, input_args{:}),[2 1]);
 sensor_data.p(isnan(sensor_data.p))=0;
 
@@ -375,22 +381,24 @@ sensor_data.p(isnan(sensor_data.p))=0;
 % Gather element signals
 real_sensor_data=sensor_data.p';
 %without defining kerf 
-groupspacing = 11; % 11 if considering kerf 
-dim_size=size(real_sensor_data);
-sumnum = groupspacing-1 ; 
-element=1;
-element_data=zeros(time_steps+1,256); %128
-for m = 1:groupspacing:dim_size(2)-sumnum
-    element_data(:,element) = (real_sensor_data(:,m)+ real_sensor_data(:,m+1)+ real_sensor_data(:,m+2)+ real_sensor_data(:,m+3)+ real_sensor_data(:,m+4)+ real_sensor_data(:,m+5)+ real_sensor_data(:,m+6)+ real_sensor_data(:,m+7)+real_sensor_data(:,m+8)+real_sensor_data(:,m+9)+real_sensor_data(:,m+10));
-    % without defining kerf
-    %element_data(:,element) = (real_sensor_data(:,m)+ real_sensor_data(:,m+1)+ real_sensor_data(:,m+2)+ real_sensor_data(:,m+3)+ real_sensor_data(:,m+4)+ real_sensor_data(:,m+5)+ real_sensor_data(:,m+6)+ real_sensor_data(:,m+7)+real_sensor_data(:,m+8)+real_sensor_data(:,m+9)+real_sensor_data(:,m+10)+real_sensor_data(:,m+11)) ;
-    element = element+1;
-end 
+% groupspacing = 11; % 11 if considering kerf 
+% dim_size=size(real_sensor_data);
+% sumnum = groupspacing-1 ; 
+% element=1;
+% element_data=zeros(time_steps+1,256); %128
+% for m = 1:groupspacing:dim_size(2)-sumnum
+%     element_data(:,element) = (real_sensor_data(:,m)+ real_sensor_data(:,m+1)+ real_sensor_data(:,m+2)+ real_sensor_data(:,m+3)+ real_sensor_data(:,m+4)+ real_sensor_data(:,m+5)+ real_sensor_data(:,m+6)+ real_sensor_data(:,m+7)+real_sensor_data(:,m+8)+real_sensor_data(:,m+9)+real_sensor_data(:,m+10));
+%     % without defining kerf
+%     %element_data(:,element) = (real_sensor_data(:,m)+ real_sensor_data(:,m+1)+ real_sensor_data(:,m+2)+ real_sensor_data(:,m+3)+ real_sensor_data(:,m+4)+ real_sensor_data(:,m+5)+ real_sensor_data(:,m+6)+ real_sensor_data(:,m+7)+real_sensor_data(:,m+8)+real_sensor_data(:,m+9)+real_sensor_data(:,m+10)+real_sensor_data(:,m+11)) ;
+%     element = element+1;
+% end 
 
 
 % Time gain compensation 
 % create time gain compensation function based on attenuation value and
 % round trip distance
+% 假设 real_sensor_data 大小为 [time_steps+1, 256]
+element_data = real_sensor_data; % 直接赋值即可
 element_data(1,:)=0;
 t0 = length(source.ux) * kgrid.dt/2;
 r = 1540*( (1:length(kgrid.t_array)) * kgrid.dt - t0 ) / 2;   
@@ -398,20 +406,26 @@ tone_burst_freq=f0;
 tgc_alpha_db_cm = medium.alpha_coeff * (tone_burst_freq * 1e-6)^medium.alpha_power;
 tgc_alpha_np_m = tgc_alpha_db_cm / 8.686 * 100;
 tgc = exp(tgc_alpha_np_m * 2 * r);
+% 确保 tgc 是 [2030, 1] single 类型
+tgc_col = tgc(:);        % 转为列向量并转为 single
+TCG_element_data = element_data .* tgc_col;   % 自动广播到所有通道
 % for u=1:prb.N_elements
 %      TCG_element_data(:,u) = bsxfun(@times, tgc, element_data(:,u)')';
 % end 
 
 % frequency filtering 
 % remove noise by band-pass filtering
-filtered_channel_data_BP_wide=tools.band_pass(TCG_element_data,1/kgrid.dt,[3e6 4e6 10e6 11e6]); % 
+% filtered_channel_data_BP_wide=tools.band_pass(TCG_element_data,1/kgrid.dt,[3e6 4e6 10e6 11e6]); % 
+filtered_channel_data_BP_wide = tools.band_pass(TCG_element_data, 1/kgrid.dt, [30e3 50e3 7e6 7.2e6]);
 non_filtered_channel_data=TCG_element_data;
-% downsampling to 20 MHz
-subsampled_channel_data = resample(non_filtered_channel_data,1,8);
-subsampled_channel_data_filtered_BP_wide = resample(filtered_channel_data_BP_wide,1,8);
+% % downsampling to 20 MHz
+% subsampled_channel_data = resample(double(non_filtered_channel_data), 1, 8);
+% % subsampled_channel_data = resample(non_filtered_channel_data,1,8);
+% subsampled_channel_data_filtered_BP_wide = resample(double(filtered_channel_data_BP_wide),1,8);
+% subsampled_channel_data_filtered_BP_wide = resample(filtered_channel_data_BP_wide,1,8);
 % zeroing cross-talk artefacts
-subsampled_channel_data(1:100,:)=0;
-subsampled_channel_data_filtered_BP_wide(1:100,:)=0;
+% subsampled_channel_data(1:100,:)=0;
+% subsampled_channel_data_filtered_BP_wide(1:100,:)=0;
 
 % % beamforming with ustb
 % % create a channel_data handle 
@@ -424,24 +438,24 @@ subsampled_channel_data_filtered_BP_wide(1:100,:)=0;
 % channel_data.data(isnan(channel_data.data))=0;
 
 % save variables for training 
-sos_map(:,:,i) = medium_sos;
-sos_map_echo(:,:,i)= medium.sound_speed; 
+sos_map(:,:,i) = medium_sos(x1_idx:x2_idx, z1_idx:z2_idx);
+sos_map_echo(:,:,i) = medium.sound_speed(x1_idx:x2_idx, z1_idx:z2_idx);
+% 实际仿真时，使用的是 medium.sound_speed，也就是你代码里的 medium_sos_echo
 % RF data
 raw_data_noTCG(:,:,i)=element_data; % no-filter-no-time-gain-no-subsampled
-wide_filtered_rf(:,:,i)=subsampled_channel_data_filtered_BP_wide; 
-no_filtered_rf(:,:,i)=subsampled_channel_data;
+wide_filtered_rf(:,:,i)=filtered_channel_data_BP_wide; 
+no_filtered_rf(:,:,i)=non_filtered_channel_data;
 
 end 
-
 %% channel-wise normalisation/standardalisation; sos pre-processing 
 % RF data
 for j = 1:total_sim
-    for i = 1:128
-       % wide_filtered_rf_normalized(:,i,j)=normalize(wide_filtered_rf(:,i,j));
+    for i = 1:256
+        wide_filtered_rf_normalized(:,i,j)=normalize(wide_filtered_rf(:,i,j));
         non_filtered_rf_normalized(:,i,j)=normalize(no_filtered_rf(:,i,j));
     end 
-    sos_map_echo_d2(:,:,j)=imresize(sos_map_echo(:,:,j),[384,384],'bilinear'); 
-    sos_map_d2(:,:,j)=imresize(sos_map(:,:,j),[384,384],'bilinear');
+    sos_map_echo_d2(:,:,j)=imresize(sos_map_echo(:,:,j),[250,250],'bilinear'); 
+    sos_map_d2(:,:,j)=imresize(sos_map(:,:,j),[250,250],'bilinear');
 end 
 
 %% noise addition 
@@ -458,6 +472,7 @@ end
 for i =1:total_sim 
     snr_val = 40+80*rand(1);
     no_filtered_rf_norm_noisy(:,:,i)=awgn(non_filtered_rf_normalized(:,:,i),snr_val,'measured');
+    wide_filtered_rf_normalized_noisy(:,:,i)=awgn(wide_filtered_rf_normalized(:,:,i),snr_val,'measured');
 end 
 % add realistic noise 
 % index = randi([1 2000],1000,1);
@@ -468,12 +483,12 @@ current_date = datestr(now, 'mmdd_HHMMSS');
 % 生成唯一的文件名
 filename = sprintf('data_%s.mat', current_date);
 % 保存所有数据到同一个 .mat 文件
-save(filename, 'non_filtered_rf_normalized', 'sos_map_d2');
+save(filename, 'non_filtered_rf_normalized', 'sos_map_d2', 'wide_filtered_rf_normalized', 'sos_map_echo_d2');
 %% check
    % 生成5张图像
 num_images = 5;
 num_samples = 4;
-total_maps = size(sos_map_d2, 3);
+total_maps = size(sos_map_echo_d2, 3);
 
 for img_idx = 1:num_images
     % 随机选择4个索引
@@ -485,7 +500,7 @@ for img_idx = 1:num_images
     % 绘制4个子图
     for i = 1:num_samples
         subplot(2, 2, i); % 创建2行2列的子图布局
-        imagesc(sos_map_d2(:, :, random_indices(i))); % 绘制声速图
+        imagesc(sos_map_echo_d2(:, :, random_indices(i))); % 绘制声速图
         colormap gray; % 设置颜色映射为灰度
         colorbar; % 显示颜色条
         axis equal tight; % 设置坐标轴比例相等并紧凑显示
